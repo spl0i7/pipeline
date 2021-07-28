@@ -2,47 +2,47 @@ package main
 
 import (
 	"fmt"
+	"github.com/spl0i7/pipeline"
 	"log"
-	"sync"
 	"time"
 )
 
 type MultiplyTenSlow struct{}
 
-func (m MultiplyTenSlow) Process(result Message) ([]Message, error) {
+func (m MultiplyTenSlow) Process(result pipeline.Message) ([]pipeline.Message, error) {
 	time.Sleep(1* time.Second)
 	number := result.(int)
-	return []Message{number * 10, number * 10}, nil
+	return []pipeline.Message{number * 10, number * 10}, nil
 }
 
 type MultiplyHundredSlow struct{}
 
-func (m MultiplyHundredSlow) Process(result Message) ([]Message, error) {
+func (m MultiplyHundredSlow) Process(result pipeline.Message) ([]pipeline.Message, error) {
 	time.Sleep(time.Duration(1 * time.Second))
 	number := result.(int)
-	return []Message{number * 100, number * 100}, nil
+	return []pipeline.Message{number * 100, number * 100}, nil
 }
 
 type DivideThreeSlow struct{}
 
-func (m DivideThreeSlow) Process(result Message) ([]Message, error) {
+func (m DivideThreeSlow) Process(result pipeline.Message) ([]pipeline.Message, error) {
 	time.Sleep(time.Duration(1 * time.Second))
 	number := result.(int)
-	return []Message{number / 3}, nil
+	return []pipeline.Message{number / 3}, nil
 }
 
 
 func main() {
 
-	p := NewConcurrentPipeline()
+	p := pipeline.NewConcurrentPipeline()
 
-	p.AddPipe(MultiplyHundredSlow{}, &PipelineOpts{
+	p.AddPipe(MultiplyHundredSlow{}, &pipeline.PipelineOpts{
 		Concurrency: 5,
 	})
-	p.AddPipe(MultiplyTenSlow{}, &PipelineOpts{
+	p.AddPipe(MultiplyTenSlow{}, &pipeline.PipelineOpts{
 		Concurrency: 5,
 	})
-	p.AddPipe(DivideThreeSlow{}, &PipelineOpts{
+	p.AddPipe(DivideThreeSlow{}, &pipeline.PipelineOpts{
 		Concurrency: 5,
 	})
 
@@ -57,10 +57,8 @@ func main() {
 
 
 
-	wg := sync.WaitGroup{}
 	go func() {
 		count := 0
-		defer wg.Done()
 		for number := range p.Output() {
 			fmt.Println(number)
 			count++
